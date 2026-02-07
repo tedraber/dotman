@@ -6,7 +6,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== Dotman Installer ===${NC}\n"
+echo -e "${GREEN}=== Dotman-cli Installer ===${NC}\n"
 
 # Detect OS
 detect_os() {
@@ -59,7 +59,7 @@ if ! command -v xmake &> /dev/null; then
 fi
 
 # Build the project
-echo -e "${YELLOW}Building dotman...${NC}"
+echo -e "${YELLOW}Building dotman-cli...${NC}"
 xmake config --require=y
 xmake
 
@@ -73,16 +73,16 @@ mkdir -p ~/.local/bin
 
 # Copy binary
 echo -e "${YELLOW}Installing binary...${NC}"
-cp build/linux/x86_64/release/dotman ~/.local/bin/dotman 2>/dev/null || \
-cp build/macosx/x86_64/release/dotman ~/.local/bin/dotman 2>/dev/null || \
-cp build/macosx/arm64/release/dotman ~/.local/bin/dotman 2>/dev/null
+cp build/linux/x86_64/release/dotman-cli ~/.local/bin/dotman-cli 2>/dev/null || \
+cp build/macosx/x86_64/release/dotman-cli ~/.local/bin/dotman-cli 2>/dev/null || \
+cp build/macosx/arm64/release/dotman-cli ~/.local/bin/dotman-cli 2>/dev/null
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to copy binary. Please copy manually from build/ directory${NC}"
     exit 1
 fi
 
-chmod +x ~/.local/bin/dotman
+chmod +x ~/.local/bin/dotman-cli
 
 # Detect shell and add to PATH
 SHELL_RC=""
@@ -109,7 +109,7 @@ if [ -n "$SHELL_RC" ]; then
     if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$SHELL_RC"; then
         echo -e "${YELLOW}Adding ~/.local/bin to PATH in $SHELL_RC${NC}"
         echo '' >> "$SHELL_RC"
-        echo '# Added by dotman installer' >> "$SHELL_RC"
+        echo '# Added by dotman-cli installer' >> "$SHELL_RC"
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
         
         echo -e "${GREEN}✓ Added to PATH${NC}"
@@ -121,7 +121,7 @@ if [ -n "$SHELL_RC" ]; then
 fi
 
 echo -e "\n${GREEN}=== Installation Complete! ===${NC}"
-echo -e "Run ${YELLOW}dotman${NC} to get started"
-echo -e "\nIf 'dotman' command is not found, run:"
+echo -e "Run ${YELLOW}dotman-cli${NC} to get started"
+echo -e "\nIf 'dotman-cli' command is not found, run:"
 echo -e "  ${YELLOW}source $SHELL_RC${NC}"
 echo -e "or restart your terminal\n"
