@@ -37,7 +37,7 @@ void set_dot();
 void makeFileStorage(){
     // Checks if dotman exists yet and creates it if not
     if (!fs::is_directory(fs::path(home) / ".dotman")) {
-        std::cout << "Creating Storage Directory\n";  
+        std::cout << "Creating Storage Directory\n";
         fs::create_directory(fs::path(home) / ".dotman");
         fs::create_directory(fs::path(dotman) / "dotfiles");
     }
@@ -49,7 +49,7 @@ void listDots(){
         if(entry.is_directory()){
             std::cout << entry.path().filename().string() << " ";
             if (i > 5) {
-                std::cout << std::endl; 
+                std::cout << std::endl;
                 i = 0;
             }
             i++;
@@ -64,25 +64,25 @@ void genConfig(){
         std::string dot;
         std::cin >> dot;
         std::cin.ignore(); // Clear newline
-        
+
         fs::directory_entry dotName{dfs / dot};
         if (dotName.exists() && dotName.is_directory()){
-            std::cout << "Already a directory, enter a new Name: ";  
+            std::cout << "Already a directory, enter a new Name: ";
         }
         else{
             std::cout << "Making directory\n";
             fs::create_directory(fs::path(dotName));
-            
+
             // Initialize in tracking file
             YAML::Node tracker;
             if (fs::exists(tracking_file)) {
                 tracker = YAML::LoadFile(tracking_file.string());
             }
             tracker["configs"][dot] = YAML::Node(YAML::NodeType::Map);
-            
+
             std::ofstream fout(tracking_file);
             fout << tracker;
-            
+
             std::cout << "Config '" << dot << "' created!\n";
             break;
         }
@@ -94,26 +94,26 @@ void move_dots(){
     std::cout << "Which config should these dotfiles be added to?\n";
     list_available_configs();
     std::cout << "Enter config name (or 'new' to create one): ";
-    
+
     std::string config_name;
     std::getline(std::cin, config_name);
-    
+
     if (config_name == "new") {
         genConfig();
         std::cout << "Enter the name you just created: ";
         std::getline(std::cin, config_name);
     }
-    
+
     fs::path config_dest = dfs / config_name;
     if (!fs::exists(config_dest)) {
         std::cout << "Config '" << config_name << "' doesn't exist.\n";
         return;
     }
-    
+
     std::vector<fs::path> directories;
     std::string input;
-    
-    std::cout << "In ~/.config, enter directory paths separated by spaces EX: dir1 dir2 dir3 dir4\n";   
+
+    std::cout << "In ~/.config, enter directory paths separated by spaces EX: dir1 dir2 dir3 dir4\n";
     std::getline(std::cin, input);
 
     std::istringstream iss(input);
@@ -132,10 +132,10 @@ void move_dots(){
                 std::cout << "Found directory: " << dir << " moving now\n";
                 fs::rename(source, dest);
                 std::cout << "Moved: " << source << " -> " << dest << "\n";
-                
+
                 // Track it
                 save_tracked_dotfile(config_name, dir);
-                
+
             } catch (const fs::filesystem_error& e) {
                 std::cerr << "Error moving " << source << ": " << e.what() << "\n";
             }
@@ -147,15 +147,15 @@ void move_dots(){
 
 void save_tracked_dotfile(const std::string& config_name, const std::string& dotfile_name) {
     YAML::Node tracker;
-    
+
     // Load existing file if it exists
     if (fs::exists(tracking_file)) {
         tracker = YAML::LoadFile(tracking_file.string());
     }
-    
+
     // Add dotfile to config
     tracker["configs"][config_name][dotfile_name] = true;
-    
+
     // Save back to file
     std::ofstream fout(tracking_file);
     fout << tracker;
@@ -163,9 +163,9 @@ void save_tracked_dotfile(const std::string& config_name, const std::string& dot
 
 bool is_tracked(const std::string& name) {
     if (!fs::exists(tracking_file)) return false;
-    
+
     YAML::Node tracker = YAML::LoadFile(tracking_file.string());
-    
+
     // Check all configs
     if (tracker["configs"]) {
         for (const auto& config : tracker["configs"]) {
@@ -182,19 +182,19 @@ void list_tracked() {
         std::cout << "No dotfiles tracked yet\n";
         return;
     }
-    
+
     YAML::Node tracker = YAML::LoadFile(tracking_file.string());
-    
+
     if (!tracker["configs"]) {
         std::cout << "No configs found\n";
         return;
     }
-    
+
     std::cout << "Tracked configurations:\n";
     for (const auto& config : tracker["configs"]) {
         std::string config_name = config.first.as<std::string>();
         std::cout << "\n  [" << config_name << "]\n";
-        
+
         for (const auto& dot : config.second) {
             std::cout << "    - " << dot.first.as<std::string>() << "\n";
         }
@@ -203,7 +203,7 @@ void list_tracked() {
 
 std::string get_active_config() {
     if (!fs::exists(tracking_file)) return "";
-    
+
     YAML::Node tracker = YAML::LoadFile(tracking_file.string());
     if (tracker["active_config"]) {
         return tracker["active_config"].as<std::string>();
@@ -213,24 +213,24 @@ std::string get_active_config() {
 
 void save_current_config(const std::string& config_name) {
     if (!fs::exists(tracking_file)) return;
-    
+
     YAML::Node tracker = YAML::LoadFile(tracking_file.string());
-    
+
     if (!tracker["configs"][config_name]) {
         std::cout << "Config not found in tracking file.\n";
         return;
     }
-    
+
     std::cout << "Saving current config back to storage...\n";
-    
+
     fs::path config_storage = dfs / config_name;
     fs::create_directories(config_storage);
-    
+
     for (const auto& dot : tracker["configs"][config_name]) {
         std::string dot_name = dot.first.as<std::string>();
         fs::path source = config / dot_name;
         fs::path dest = config_storage / dot_name;
-        
+
         if (fs::exists(source)) {
             try {
                 fs::rename(source, dest);
@@ -240,7 +240,7 @@ void save_current_config(const std::string& config_name) {
             }
         }
     }
-    
+
     // Clear active config
     tracker["active_config"] = "";
     std::ofstream fout(tracking_file);
@@ -249,19 +249,19 @@ void save_current_config(const std::string& config_name) {
 
 void load_config(const std::string& config_name) {
     fs::path config_path = dfs / config_name;
-    
+
     if (!fs::exists(config_path)) {
         std::cout << "Config path doesn't exist.\n";
         return;
     }
-    
+
     std::cout << "Loading config '" << config_name << "'...\n";
-    
+
     for (const auto& entry : fs::directory_iterator(config_path)) {
         if (entry.is_directory()) {
             fs::path source = entry.path();
             fs::path dest = config / entry.path().filename();
-            
+
             try {
                 fs::rename(source, dest);
                 std::cout << "Loaded: " << source << " -> " << dest << "\n";
@@ -270,17 +270,17 @@ void load_config(const std::string& config_name) {
             }
         }
     }
-    
+
     // Update tracking file
     YAML::Node tracker;
     if (fs::exists(tracking_file)) {
         tracker = YAML::LoadFile(tracking_file.string());
     }
     tracker["active_config"] = config_name;
-    
+
     std::ofstream fout(tracking_file);
     fout << tracker;
-    
+
     std::cout << "Config '" << config_name << "' is now active!\n";
 }
 
@@ -289,7 +289,7 @@ void list_available_configs() {
         std::cout << "No configs found.\n";
         return;
     }
-    
+
     bool found = false;
     for (const auto& entry : fs::directory_iterator(dfs)) {
         if (entry.is_directory()) {
@@ -297,7 +297,7 @@ void list_available_configs() {
             found = true;
         }
     }
-    
+
     if (!found) {
         std::cout << "No configs found.\n";
     }
@@ -306,16 +306,16 @@ void list_available_configs() {
 void set_dot() {
     // Check if there's currently an active config
     std::string current_config = get_active_config();
-    
+
     if (!current_config.empty()) {
         std::cout << "Currently active config: " << current_config << "\n";
         std::cout << "Switching will move your current .config files back to dotman storage.\n";
         std::cout << "Are you okay with this? (y/n): ";
-        
+
         char response;
         std::cin >> response;
         std::cin.ignore(); // Clear newline from buffer
-        
+
         if (response == 'y' || response == 'Y') {
             // Save current config back to storage
             save_current_config(current_config);
@@ -323,7 +323,7 @@ void set_dot() {
             std::cout << "Would you like to create a new config instead? (y/n): ";
             std::cin >> response;
             std::cin.ignore();
-            
+
             if (response == 'y' || response == 'Y') {
                 genConfig();
                 return;
@@ -333,29 +333,29 @@ void set_dot() {
             }
         }
     }
-    
+
     // List available configs
     std::cout << "\nAvailable configurations:\n";
     list_available_configs();
-    
+
     std::cout << "\nEnter config name to activate: ";
     std::string config_name;
     std::getline(std::cin, config_name);
-    
+
     fs::path config_path = dfs / config_name;
-    
+
     if (!fs::exists(config_path) || !fs::is_directory(config_path)) {
         std::cout << "Config '" << config_name << "' not found.\n";
         return;
     }
-    
+
     // Load the selected config
     load_config(config_name);
 }
 
 int main() {
     makeFileStorage();
-    
+
     while (true){
         std::cout << "=== Dotfile Manager ===\n";
         std::cout << "1. List configs\n";
@@ -369,7 +369,7 @@ int main() {
         int choice;
         std::cin >> choice;
         std::cin.ignore();
-    
+
         switch(choice) {
             case 1:
                 system("clear");
@@ -398,6 +398,6 @@ int main() {
                 std::cout << "Invalid choice\n";
             }
         }
-    
+
     return 0;
 }
