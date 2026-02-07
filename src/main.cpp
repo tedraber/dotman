@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include <sstream>
 #include <string>
 #include <filesystem>
@@ -371,18 +372,23 @@ int main() {
     
         switch(choice) {
             case 1:
+                system("clear");
                 list_available_configs();
                 break;
             case 2:
+                system("clear");
                 genConfig();
                 break;
             case 3:
+                system("clear");
                 move_dots();
                 break;
             case 4:
+                system("clear");
                 set_dot();
                 break;
             case 5:
+                system("clear");
                 list_tracked();
                 break;
             case 6:
